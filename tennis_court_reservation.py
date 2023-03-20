@@ -1,4 +1,6 @@
 import datetime
+import json
+import csv
 
 
 class ReservationSystem:
@@ -25,7 +27,7 @@ class ReservationSystem:
         reservation = self.get_reservation_for_user(name, date)
 
         if reservation is None:
-            raise ValueRrror("Nie ma Twojej rezerwacji w tym czasie")
+            raise ValueError("Nie ma Twojej rezerwacji w tym czasie")
         
         if reservation ["date"] - datatime.datetime.now() < datetime.timedelta(hours=1):
             raise ValueError("Rezerwacje można anulować co najmniej godzinę przed czasem gry")
@@ -58,6 +60,21 @@ class ReservationSystem:
             for reservation in reservations_for_day:
                 start_time = reservation["date"].strftime("%H: %M")
                 end_time = reservation(["date"] + timedelta(minutes=reservation["duration"])).strftime("%H: %M")
-                reservation_entry = {"name": reservation["name"], "start_time": start_time, "end_time": end_time, "date": current_date.strftime("%d-%m-%Y")}
+                reservation_entry = {
+                    "name": reservation["name"],
+                    "start_time": start_time,
+                    "end_time": end_time,
+                    "date": current_date.strftime("%Y-%m-%d")}
                 shedule["reservations"].append(reservation_entry)
-                current_date += timedelta(days=1)
+            current_date += timedelta(days=1)
+        if format == "json":
+            with open(file_name, "w") as file:
+                json.dump(schedule, file, indent=4)
+        elif format == "csv":
+            with open(file_name, "w", newline="") as file:
+                writer = csv.writer(file)
+                writer.writerow(["Name", "Date", "Start time", "End time"])
+                for reservation in schedule["reservations"]:
+                    writer.writerow([reservation["name"], reservation["date"], reservation["start_time"], reservation["end_time"]])
+        else:
+            print("Niewłaściwy format pliku. Właściwym formatem jest 'json'.")
